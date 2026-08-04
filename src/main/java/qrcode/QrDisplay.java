@@ -59,7 +59,7 @@ public class QrDisplay {
             QrDisplay qrDisplay = new QrDisplay();
             
             // 最新のIPアドレス
-            String baseUrl = "http://172.19.72.12:8080/OrderSystem2026Phase1/OrderStartServlet?tt=";
+            String baseUrl = "http://172.19.71.83:8080/OrderSystem2026Phase1/OrderStartServlet?tt=";
 
             // 先ほどのDB画像で確認できた、各卓の最新（未closed）トークン
             String[] latestTokens = {
