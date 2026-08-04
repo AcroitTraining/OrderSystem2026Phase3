@@ -59,13 +59,13 @@ public class QrDisplay {
             QrDisplay qrDisplay = new QrDisplay();
             
             // 最新のIPアドレス
-            String baseUrl = "http://172.19.72.36:8080/OrderSystem2026Phase1/OrderStartServlet?tt=";
+            String baseUrl = "http://172.19.72.12:8080/OrderSystem2026Phase1/OrderStartServlet?tt=";
 
             // 先ほどのDB画像で確認できた、各卓の最新（未closed）トークン
             String[] latestTokens = {
                 "2891ebcb57a67d9a", // 卓1用 (session_id: 163)
                 "233ed69d31184669", // 卓2用 (session_id: 159)
-                "f206d2fa0e1cf621", // 卓3用 (session_id: 160)
+                "103926ce8e410c78", // 卓3用 (session_id: 160)
                 "fd2a4fcd7162b293"  // 卓4用 (session_id: 162)
             };
 

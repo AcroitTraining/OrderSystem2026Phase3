@@ -13,7 +13,7 @@ public class Sender implements Runnable {
     private final String DB_PASS = "1234";
 
     // ★ 最新のIPアドレスを設定
-    private final String BASE_URL = "http://172.19.72.36:8080/OrderSystem2026Phase1/OrderStartServlet?tt=";
+    private final String BASE_URL = "http://172.19.72.12:8080/OrderSystem2026Phase1/OrderStartServlet?tt=";
 
     @Override
     public void run() {
