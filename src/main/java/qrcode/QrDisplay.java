@@ -16,25 +16,22 @@ public class QrDisplay {
         if (qrText == null || qrText.trim().isEmpty()) {
             throw new IllegalArgumentException("注文開始URLが null または空です。");
         }
-        if (!qrText.startsWith("http://") && !qrText.startsWith("https://")) {
-            throw new IllegalArgumentException("URLの形式が正しくありません: " + qrText);
-        }
-        if (qrText.length() > 200) {
-            throw new IllegalArgumentException("注文開始URLの文字列が長すぎます。");
-        }
 
+        // 白（0xFF）で初期化
         int bufferSize = ((EPD_WIDTH % 8 == 0) ? (EPD_WIDTH / 8) : (EPD_WIDTH / 8 + 1)) * EPD_HEIGHT;
         byte[] frameBuffer = new byte[bufferSize];
         Arrays.fill(frameBuffer, (byte) 0xFF);
 
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
-        BitMatrix bitMatrix = qrCodeWriter.encode(qrText, BarcodeFormat.QR_CODE, 120, 120);
+        // 読み取り用の余白を設けるため 100x100
+        int qrSize = 100;
+        BitMatrix bitMatrix = qrCodeWriter.encode(qrText, BarcodeFormat.QR_CODE, qrSize, qrSize);
 
-        int offsetX = 1;
-        int offsetY = 60;
+        int offsetX = (EPD_WIDTH - qrSize) / 2;
+        int offsetY = (EPD_HEIGHT - qrSize) / 2;
 
-        for (int y = 0; y < 120; y++) {
-            for (int x = 0; x < 120; x++) {
+        for (int y = 0; y < qrSize; y++) {
+            for (int x = 0; x < qrSize; x++) {
                 if (bitMatrix.get(x, y)) {
                     drawPixel(frameBuffer, offsetX + x, offsetY + y);
                 }
@@ -44,6 +41,11 @@ public class QrDisplay {
         EpdEmulator.saveBufferAsImage(frameBuffer, EPD_WIDTH, EPD_HEIGHT, outputPath);
     }
 
+    public void runForTable(int tableId, String qrText) throws Exception {
+        String fileName = "table_" + tableId + "_qr.png";
+        run(qrText, fileName);
+    }
+
     private void drawPixel(byte[] buffer, int x, int y) {
         if (x >= EPD_WIDTH || y >= EPD_HEIGHT) return;
         int byteWidth = (EPD_WIDTH % 8 == 0) ? (EPD_WIDTH / 8) : (EPD_WIDTH / 8 + 1);
@@ -51,16 +53,35 @@ public class QrDisplay {
         buffer[index] &= ~(0x80 >> (x % 8));
     }
 
+    // ★ ここを実行すればDBドライバなしで卓1〜4の正解QR画像が一気に完成します！
     public static void main(String[] args) {
         try {
-            // ★ 最新の Wi-Fi IP (172.19.72.36) を設定
-            String testUrl = "http://172.19.72.36:8080/OrderSystem2026Phase1/OrderStartServlet?tt=fa44f9a6-741f-11f1-b5ec-6845f12866be-4090a26b";
-            
             QrDisplay qrDisplay = new QrDisplay();
-            qrDisplay.run(testUrl, "qr_test.png");
             
-            System.out.println("★ IP: 172.19.72.36 でQRコードの生成に成功しました！ -> qr_test.png");
-            System.out.println("埋め込みURL: " + testUrl);
+            // 最新のIPアドレス
+            String baseUrl = "http://172.19.72.36:8080/OrderSystem2026Phase1/OrderStartServlet?tt=";
+
+            // 先ほどのDB画像で確認できた、各卓の最新（未closed）トークン
+            String[] latestTokens = {
+                "2891ebcb57a67d9a", // 卓1用 (session_id: 163)
+                "233ed69d31184669", // 卓2用 (session_id: 159)
+                "f206d2fa0e1cf621", // 卓3用 (session_id: 160)
+                "fd2a4fcd7162b293"  // 卓4用 (session_id: 162)
+            };
+
+            System.out.println("🔄 最新IP [172.19.72.36] とDB最新トークンで全卓のQRコードを一括作成します...\n");
+
+            for (int i = 0; i < 4; i++) {
+                int tableId = i + 1;
+                String fullUrl = baseUrl + latestTokens[i];
+
+                qrDisplay.runForTable(tableId, fullUrl);
+                System.out.println(" ✅ 卓番 " + tableId + " 用QR画像を生成しました ➔ table_" + tableId + "_qr.png");
+                System.out.println("   └ 埋め込みURL: " + fullUrl);
+            }
+
+            System.out.println("\n✨ 全4卓分のQRコード画像生成が成功しました！");
+
         } catch (Exception e) {
             System.err.println("エラーが発生しました: " + e.getMessage());
             e.printStackTrace();
