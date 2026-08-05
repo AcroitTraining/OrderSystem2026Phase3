@@ -51,26 +51,5 @@ public class QrDisplay {
         buffer[index] &= ~(0x80 >> (x % 8));
     }
 
-    // ★ テスト用：引数で卓番とURLを渡して単体確認する
-    public static void main(String[] args) {
-        try {
-            QrDisplay qrDisplay = new QrDisplay();
-
-            if (args.length < 2) {
-                System.out.println("使い方: java QrDisplay <tableId> <url>");
-                return;
-            }
-
-            int tableId = Integer.parseInt(args[0]);
-            String fullUrl = args[1];
-
-            qrDisplay.runForTable(tableId, fullUrl);
-            System.out.println("✅ 卓番 " + tableId + " 用QR画像を生成しました ➔ table_" + tableId + "_qr.png");
-            System.out.println("   └ 埋め込みURL: " + fullUrl);
-
-        } catch (Exception e) {
-            System.err.println("エラーが発生しました: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+    
 }
