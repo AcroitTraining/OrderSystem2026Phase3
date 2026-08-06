@@ -19,10 +19,14 @@ public class Config {
     }
 
     public static String get(String key) {
-        return properties.getProperty(key);
+        String value = properties.getProperty(key);
+        if (value == null) {
+            // ★追加：キーが無い場合は早期に気づけるようにする
+            throw new IllegalStateException("設定キーが見つかりません: " + key + "（application.propertiesを確認してください）");
+        }
+        return value;
     }
 
-    // ★ここから追加：よく使う値専用のgetter
     public static String getBaseUrl() {
         return get("base.url");
     }
