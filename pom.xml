@@ -45,18 +45,25 @@
             <version>8.3.0</version>
         </dependency>
 
-        <!-- ZXing QRコード生成 -->
-        <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>core</artifactId>
-            <version>3.5.3</version>
-        </dependency>
+        <!-- ZXing (QRコード生成用) -->
+    	<dependency>
+        	<groupId>com.google.zxing</groupId>
+        	<artifactId>core</artifactId>
+        	<version>3.5.3</version>
+    	</dependency>
+    	<!-- Pi4J V2 Core -->
+ 	   <dependency>
+	       <groupId>com.pi4j</groupId>
+	        <artifactId>pi4j-core</artifactId>
+	        <version>2.6.0</version>
+    	</dependency>
+    	<!-- Pi4J Pi-Gpio プラグイン (Raspberry Pi 3B+ 用) -->
+    	<dependency>
+        	<groupId>com.pi4j</groupId>
+        	<artifactId>pi4j-plugin-pigpio</artifactId>
+        	<version>2.6.0</version>
+    	</dependency>
 
-        <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>javase</artifactId>
-            <version>3.5.3</version>
-        </dependency>
 
     </dependencies>
 

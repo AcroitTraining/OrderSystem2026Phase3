@@ -37,7 +37,7 @@ public class Config {
 
     public static String getDbUrl() {
         return "jdbc:mysql://" + get("db.host") + ":" + get("db.port") + "/" + get("db.name")
-                + "?useSSL=false&serverTimezone=Asia/Tokyo";
+                + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Tokyo";
     }
 
     public static String getDbUser() {

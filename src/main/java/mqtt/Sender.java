@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -22,9 +23,23 @@ public class Sender implements Runnable {
      * MQTTクライアントの初期化・接続
      */
     private void setUpMqtt() throws MqttException {
-        client = new MqttClient(Config.getMqttHost(), "Sender_Master", new MemoryPersistence());
-        client.connect();
-        System.out.println("📡 [MQTT] ブローカーに接続しました: " + Config.getMqttHost());
+        System.out.println("🔧 MQTT Host = " + Config.getMqttHost());
+
+        client = new MqttClient(
+            Config.getMqttHost(),
+            "Sender_Master",
+            new MemoryPersistence()
+        );
+
+        MqttConnectOptions options = new MqttConnectOptions();
+        options.setAutomaticReconnect(true);
+        options.setCleanSession(true);
+
+        System.out.println("📡 MQTT接続開始...");
+
+        client.connect(options);
+
+        System.out.println("✅ [MQTT] ブローカーに接続しました: " + Config.getMqttHost());
     }
 
     /**
