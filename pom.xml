@@ -5,33 +5,69 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>OrderSystem2026Phase3</groupId>
-    <artifactId>OrderSystem2026Phase3</artifactId>
+    <groupId>MQTTDocker</groupId>
+    <artifactId>MQTTDocker</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>OrderSystem2026Phase3</name>
+    <name>MQTTDocker</name>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <pi4j.version>2.6.0</pi4j.version>
     </properties>
 
     <build>
-        <plugins>
+        <sourceDirectory>src</sourceDirectory>
 
-            <!-- Javaコンパイル -->
+        <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                </configuration>
             </plugin>
 
+            <!-- 依存関係をまとめるプラグイン + 署名ファイル除外フィルター -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>mqtt.Receiver</mainClass> 
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
     <dependencies>
-
-        <!-- MQTT(Paho) -->
+        <!-- MQTT (Paho) -->
         <dependency>
             <groupId>org.eclipse.paho</groupId>
             <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
@@ -45,26 +81,37 @@
             <version>8.3.0</version>
         </dependency>
 
-        <!-- ZXing (QRコード生成用) -->
-    	<dependency>
-        	<groupId>com.google.zxing</groupId>
-        	<artifactId>core</artifactId>
-        	<version>3.5.3</version>
-    	</dependency>
-    	<!-- Pi4J V2 Core -->
- 	   <dependency>
-	       <groupId>com.pi4j</groupId>
-	        <artifactId>pi4j-core</artifactId>
-	        <version>2.6.0</version>
-    	</dependency>
-    	<!-- Pi4J Pi-Gpio プラグイン (Raspberry Pi 3B+ 用) -->
-    	<dependency>
-        	<groupId>com.pi4j</groupId>
-        	<artifactId>pi4j-plugin-pigpio</artifactId>
-        	<version>2.6.0</version>
-    	</dependency>
+        <!-- ZXing QRコード生成 -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
 
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.3</version>
+        </dependency>
 
+        <!-- Pi4J -->
+        <dependency>
+            <groupId>com.pi4j</groupId>
+            <artifactId>pi4j-core</artifactId>
+            <version>${pi4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.pi4j</groupId>
+            <artifactId>pi4j-plugin-raspberrypi</artifactId>
+            <version>${pi4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.pi4j</groupId>
+            <artifactId>pi4j-plugin-gpiod</artifactId>
+            <version>${pi4j.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

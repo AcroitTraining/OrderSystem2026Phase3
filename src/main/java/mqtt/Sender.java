@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -19,32 +18,12 @@ public class Sender implements Runnable {
     private final String BASE_URL = Config.getBaseUrl() + "/OrderStartServlet?tt=";
     private MqttClient client;
 
-    /**
-     * MQTTクライアントの初期化・接続
-     */
     private void setUpMqtt() throws MqttException {
-        System.out.println("🔧 MQTT Host = " + Config.getMqttHost());
-
-        client = new MqttClient(
-            Config.getMqttHost(),
-            "Sender_Master",
-            new MemoryPersistence()
-        );
-
-        MqttConnectOptions options = new MqttConnectOptions();
-        options.setAutomaticReconnect(true);
-        options.setCleanSession(true);
-
-        System.out.println("📡 MQTT接続開始...");
-
-        client.connect(options);
-
-        System.out.println("✅ [MQTT] ブローカーに接続しました: " + Config.getMqttHost());
+        client = new MqttClient(Config.getMqttHost(), "Sender_Master", new MemoryPersistence());
+        client.connect();
+        System.out.println("📡 [MQTT] ブローカーに接続しました: " + Config.getMqttHost());
     }
 
-    /**
-     * topic: epaper/<tableId>/status/URL_SENT にURLをpublishする
-     */
     private void sendUrl(int tableId, String fullUrl) {
         try {
             String topic = "epaper/" + tableId + "/status/URL_SENT";
@@ -62,7 +41,7 @@ public class Sender implements Runnable {
             setUpMqtt();
         } catch (MqttException e) {
             e.printStackTrace();
-            return; // MQTT接続失敗なら起動中止
+            return;
         }
 
         System.out.println("🚀 [Sender] 卓状態の監視を開始しました... (" + Config.getBaseUrl() + ")");
@@ -107,7 +86,7 @@ public class Sender implements Runnable {
 
                     System.out.println("🔍 [検知] 卓番=" + tableId + " / 新トークン=" + newToken);
 
-                    sendUrl(tableId, fullUrl); // ★ここが変更点：直接呼び出し → MQTT publish
+                    sendUrl(tableId, fullUrl);
 
                     try (PreparedStatement psReset = conn.prepareStatement(resetFlagSql)) {
                         psReset.setInt(1, tableId);
