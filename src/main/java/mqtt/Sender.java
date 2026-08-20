@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.function.Supplier;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -15,13 +16,38 @@ import dao.DBConnection;
 
 public class Sender implements Runnable {
 
-    private final String BASE_URL = Config.getBaseUrl() + "/OrderStartServlet?tt=";
+    private final String baseUrl;
+    private final Supplier<Connection> connectionSupplier;
     private MqttClient client;
 
+    // 【本番用コンストラクタ】既存の呼び出し方を壊さない
+    public Sender() {
+        this(
+            null, 
+            () -> {
+                try {
+                    return DBConnection.getConnection();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }, 
+            Config.getBaseUrl() + "/OrderStartServlet?tt="
+        );
+    }
+
+    // 【テスト用DIコンストラクタ】外部からモックを注入できる
+    public Sender(MqttClient client, Supplier<Connection> connectionSupplier, String baseUrl) {
+        this.client = client;
+        this.connectionSupplier = connectionSupplier;
+        this.baseUrl = baseUrl;
+    }
+
     private void setUpMqtt() throws MqttException {
-        client = new MqttClient(Config.getMqttHost(), "Sender_Master", new MemoryPersistence());
-        client.connect();
-        System.out.println("📡 [MQTT] ブローカーに接続しました: " + Config.getMqttHost());
+        if (this.client == null) {
+            this.client = new MqttClient(Config.getMqttHost(), "Sender_Master", new MemoryPersistence());
+            this.client.connect();
+            System.out.println("📡 [MQTT] ブローカーに接続しました: " + Config.getMqttHost());
+        }
     }
 
     private void sendUrl(int tableId, String fullUrl) {
@@ -44,7 +70,7 @@ public class Sender implements Runnable {
             return;
         }
 
-        System.out.println("🚀 [Sender] 卓状態の監視を開始しました... (" + Config.getBaseUrl() + ")");
+        System.out.println("🚀 [Sender] 卓状態の監視を開始しました...");
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 checkAndUpdateQRCodes();
@@ -58,7 +84,8 @@ public class Sender implements Runnable {
         }
     }
 
-    private void checkAndUpdateQRCodes() {
+    // テストクラスから呼び出せるように package-private に変更
+    void checkAndUpdateQRCodes() {
         String selectSql =
             "SELECT tm.table_id, ts.url_token " +
             "FROM table_master tm " +
@@ -72,7 +99,7 @@ public class Sender implements Runnable {
             ")";
         String resetFlagSql = "UPDATE table_master SET update_flag = 0 WHERE table_id = ?";
 
-        try (Connection conn = DBConnection.getConnection()) {
+        try (Connection conn = connectionSupplier.get()) {
             try (PreparedStatement psSelect = conn.prepareStatement(selectSql);
                  ResultSet rs = psSelect.executeQuery()) {
 
@@ -82,7 +109,7 @@ public class Sender implements Runnable {
                     foundCount++;
                     int tableId = rs.getInt("table_id");
                     String newToken = rs.getString("url_token");
-                    String fullUrl = BASE_URL + newToken;
+                    String fullUrl = baseUrl + newToken;
 
                     System.out.println("🔍 [検知] 卓番=" + tableId + " / 新トークン=" + newToken);
 
